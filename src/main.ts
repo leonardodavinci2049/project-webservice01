@@ -1,10 +1,12 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.main/app.module';
-import { Logger, ValidationPipe} from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { envs } from './core/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const logger = new Logger('WEBSERVICE');
   app.setGlobalPrefix('api');
   app.useGlobalPipes(
     new ValidationPipe({
@@ -21,7 +23,7 @@ async function bootstrap() {
     .setTitle('Webservice ComSuporte')
     .setDescription('Webservice para suporte de sistemas WinERP')
     .setVersion('1.0')
-    .addServer('http://localhost:3000/')
+    .addServer(`${envs.APP_HOST_API}:${envs.APP_PORT}`)
     .addBearerAuth(
       {
         type: 'http',
@@ -34,11 +36,11 @@ async function bootstrap() {
       'JWT-auth', // This name here is important for matching up with @ApiBearerAuth()in your controller!
     )
     .build();
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
-  //console.log('Aqui xxxxx', process.env.HOST_API);
-  Logger.log(`Application is running on:${process.env.HOST_API}`, 'Bootstrap');
 
-  await app.listen(3000);
+  await app.listen(envs.APP_PORT);
+  logger.log(`Application is running on port: ${envs.APP_PORT}`);
 }
 bootstrap();
